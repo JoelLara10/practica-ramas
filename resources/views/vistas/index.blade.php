@@ -9,7 +9,6 @@
 <body>
     <ul>
         @foreach ($user as $us)
-            <li>{{$us->name}} - {{$us->email}} - {{$us->id}} -- {{$us->password}}</li>
         @endforeach
     </ul>
 </body>

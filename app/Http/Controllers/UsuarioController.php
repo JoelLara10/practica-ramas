@@ -6,6 +6,10 @@ use App\Models\Usuario;
 use App\Http\Requests\StoreUsuarioRequest;
 use App\Http\Requests\UpdateUsuarioRequest;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class UsuarioController extends Controller
 {
@@ -14,22 +18,11 @@ class UsuarioController extends Controller
      */
     public function index()
     {
-        //Matar el proceso
-        //$a = "Llegas a la funcion";
-        //Log::info("Llegas a la funcion");
-        //Log::emergency($a);
-        //Log::alert($a);
-        //Log::critical($a);
-        //Log::error($a);
-        //Log::warning($a);
-        //Log::notice($a);
-        //Log::info($a);
-        //Log::debug($a);
-        //Log::info($a);
-        $user = Usuario::all();
-        //dd($user);
-        //$a = Usuario::find(1);
-        return view('index', compact('user'));
+        // Obtener todos los usuarios
+        $users = Usuario::all();
+
+        // Retornar la vista con la lista de usuarios
+        return view('vistas.index', compact('users'));
     }
 
     /**
@@ -37,15 +30,33 @@ class UsuarioController extends Controller
      */
     public function create()
     {
-        return view('create');
+        // Retornar la vista de creación
+        return view('vistas.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(/*StoreUsuarioRequest $request*/)
+    public function store(Request $request)
     {
-        return view('store');
+        //dd($request->all());
+        // Validar los datos
+        $validated = $request ->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email', 
+            'password' => 'required|string|min:8', 
+        ]);
+
+        // Crear un nuevo usuario
+
+        $usuario = new Usuario();
+        $usuario->name = $request->input('name');
+        $usuario->email = $request->input('email');
+        $usuario->password = Hash::make($request->input('password'));
+        $usuario->save();
+
+        Alert::success('Éxito', 'Usuario creado correctamente')->flash();
+        return redirect()->route('user.list');
     }
 
     /**
@@ -53,42 +64,64 @@ class UsuarioController extends Controller
      */
     public function show(Usuario $usuario)
     {
-        return view('show');
+        // Retornar la vista con el usuario específico
+        return view('show', compact('usuario'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Usuario $usuario)
+    public function edit($id)
     {
-        return view('edit');
+        //dd($id);
+        $usuario = Usuario::find($id);
+        //dd($usuario);
+        return view('vistas.update', compact('usuario'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(/**UpdateUsuarioRequest $request, Usuario $usuario*/)
+    public function update(Request $request)
     {
-        return view('update');
+        //dd($request->all());
+        $usuario = Usuario::find($request->id);
+        $usuario->name = $request->nombre;
+        $usuario->save();
+
+        return redirect()->route('user.list');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Usuario $usuario)
+    public function destroy($id)
     {
-        return view('destroy');
+        //dd($id);
+        $usuario = Usuario::find($id);
+        $usuario->delete();
+        return redirect()->route('user.list');
     }
+
+    public function list() {
+        $usuarios = Usuario::paginate(4);
+        //dd($usuarios);
+        return view('vistas.list_users', compact('usuarios'));
+    }
+
+    // Métodos adicionales
     public function Function1()
     {
-        //
+        // Aquí puedes agregar lógica personalizada
     }
+
     public function Function2()
     {
-        //
+        // Aquí puedes agregar lógica personalizada
     }
+
     public function Function3()
     {
-        //
+        // Aquí puedes agregar lógica personalizada
     }
 }
